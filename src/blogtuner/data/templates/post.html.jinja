@@ -1,0 +1,36 @@
+{% extends 'base.html.jinja' %}
+{% block title %}{{ post.title }}{% endblock %}
+{% block body %}
+  {%- set author = post.author or blog.author or None %}
+  <article>
+    <header>
+      <h1>{{ post.title }}</h1>
+      <p>
+        <time datetime="{{ post.pubdate|date('%Y-%m-%d') }}"
+          >{{ post.pubdate|date('%B %d, %Y') }}</time
+        >
+        {%- if author %}
+          <span>by {{ author }}</span>
+        {%- endif %}
+      </p>
+    </header>
+    <div>{{ post.html |safe }}</div>
+    <footer>
+      {%- if post.tags %}
+        <h2>Tags</h2>
+        <ul>
+          {% for tag in post.tags %}
+            <li>{{ tag }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </footer>
+  </article>
+  <nav>
+    <p>
+      <a href="{{ blog.base_path or '/' }}"
+        >&larr; Back to {{ blog.name or "blog" }}</a
+      >
+    </p>
+  </nav>
+{% endblock %}

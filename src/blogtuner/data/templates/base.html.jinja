@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="{{ blog.lang if blog.lang else '' }}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ blog.blog_path }}bundle.css">
+  <body>
+    <main>{% block body %}{% endblock %}</main>
+    {% if blog.footer %}
+      <footer>
+        {{ blog.footer | safe }}
+      </footer>
+    {% endif %}
+  </body>
+</html>

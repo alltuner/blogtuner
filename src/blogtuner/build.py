@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, Dict, Generator, List, Optional, Self
 
 import frontmatter  # type: ignore
+import git
 import mistune
 import toml
 from dateutil import tz
@@ -30,7 +31,66 @@ with as_file(files("blogtuner.data").joinpath("templates")) as template_path:
 
 def _get_static_file(name: str) -> Path:
     with as_file(files("blogtuner.data").joinpath("statics")) as static_path:
-        return static_path.joinpath(name)
+        return static_path / name
+
+
+def smart_move(source_path: Path, destination_path: Path) -> Path:
+    """
+    Move a file or directory from source_path to destination_path.
+
+    If the file is part of a Git repository, uses git mv for the operation.
+    Otherwise, uses regular file system rename.
+
+    Args:
+        source_path: A Path object pointing to the source file/directory
+        destination_path: A Path object pointing to the desired destination
+
+    Raises:
+        FileExistsError: If destination_path already exists
+        FileNotFoundError: If source_path doesn't exist
+
+    Returns:
+        Path: The destination path after successful move
+    """
+    # Ensure paths are Path objects
+    source_path = Path(source_path)
+    destination_path = Path(destination_path)
+
+    # Check if source exists
+    if not source_path.exists():
+        raise FileNotFoundError(f"Source path does not exist: {source_path}")
+
+    # Check if destination already exists
+    if destination_path.exists():
+        raise FileExistsError(f"Destination path already exists: {destination_path}")
+
+    # Try to determine if source is in a git repository
+    try:
+        # Get absolute paths for reliability
+        source_abs = source_path.absolute()
+        dest_abs = destination_path.absolute()
+
+        # Find the git repo that might contain the source
+        repo = git.Repo(source_abs, search_parent_directories=True)
+
+        # Check if the file is tracked by git
+        # Get relative path within the repo
+        rel_source = str(source_abs.relative_to(repo.working_dir))
+
+        # Check if the file is tracked
+        tracked_files = [item[0] for item in repo.index.entries]
+        if rel_source in tracked_files:
+            # Use git mv for the operation
+            repo.git.mv(source_abs, dest_abs)
+            return destination_path
+    except (git.InvalidGitRepositoryError, git.NoSuchPathError, ValueError):
+        # Not a git repo or file not tracked - will fall back to regular move
+        pass
+
+    # If we got here, either it's not a git object or an error occurred
+    # Fall back to regular rename
+    source_path.rename(destination_path)
+    return destination_path
 
 
 # Define default post metadata
@@ -94,7 +154,7 @@ class FileData(BaseModel):
             logger.error(f"Target file {new_file} already exists, and it is not a file")
             return
 
-        self.file = self.file.rename(new_file)
+        self.file = smart_move(self.file, new_file)
         logger.info(f"Renamed file to {self.file}")
 
     def write_file(self, defaults: dict) -> None:

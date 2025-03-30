@@ -1,4 +1,5 @@
 import datetime as dt
+import re
 import shutil
 from importlib.resources import as_file, files
 from pathlib import Path
@@ -115,7 +116,10 @@ class FileData(BaseModel):
 
     @property
     def slug(self) -> str:
-        slug = str(self.metadata.get("slug", self.file.stem))
+        match = re.match(r"^\d{4}-\d{2}-\d{2}-(.*)", self.file.stem)
+        stem = match.group(1) if match else self.file.stem
+
+        slug = str(self.metadata.get("slug", stem))
         return slugify(slug)
 
     @property

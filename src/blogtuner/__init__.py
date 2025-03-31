@@ -1,10 +1,7 @@
-import logging
+from dotenv import load_dotenv
+from loguru import logger
 
 
-logger = logging.getLogger(__name__)
-
-# FIXME: Remove when done debugging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
 __all__ = ["logger"]
+
+load_dotenv()

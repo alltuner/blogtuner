@@ -1,7 +1,6 @@
 import datetime as dt
 import re
 import shutil
-from importlib.resources import as_file, files
 from pathlib import Path
 from typing import Any, Dict, Generator, List, Optional, Self
 
@@ -12,27 +11,14 @@ import toml
 from dateutil import tz
 from dateutil.parser import parse as dateparse
 from feedgen.feed import FeedGenerator  # type: ignore
-from jinja2 import Environment, FileSystemLoader, Template
+from loguru import logger
 from mdformat import text as mdformat
 from pydantic import BaseModel, HttpUrl
 from slugify import slugify
 
-from . import logger
-
-
-with as_file(files("blogtuner.data").joinpath("templates")) as template_path:
-    jinja_env = Environment(
-        autoescape=True,
-        loader=FileSystemLoader(template_path),
-    )
-    jinja_env.filters["date"] = lambda value, format=None: value.strftime(
-        format if format else "%Y-%m-%d"
-    )
-
-
-def _get_static_file(name: str) -> Path:
-    with as_file(files("blogtuner.data").joinpath("statics")) as static_path:
-        return static_path / name
+from .constants import DEFAULT_BLOG_METADATA, DEFAULT_POST_METADATA
+from .paths import get_static_file
+from .templates import load_template
 
 
 def smart_move(source_path: Path, destination_path: Path) -> Path:
@@ -94,17 +80,8 @@ def smart_move(source_path: Path, destination_path: Path) -> Path:
     return destination_path
 
 
-# Define default post metadata
-DEFAULT_POST_METADATA: Dict[str, Any] = {}
-DEFAULT_BLOG_METADATA: Dict[str, Any] = {
-    "base_url": None,
-    "base_path": "/",
-    "author": "Anonymous",
-    "name": "My Blog",
-    "lang": "en",
-    "tz": "UTC",
-    "footer_text": "Powered by <a href='https://github.com/alltuner/blogtuner'>BlogTuner</a>",
-}
+class CliState(BaseModel):
+    src_dir: Path = Path(".")
 
 
 class FileData(BaseModel):
@@ -229,6 +206,19 @@ class Blog(BaseModel):
 
     posts: List[Post] = []
 
+    @classmethod
+    def from_src_dir(cls, src_dir: Path) -> Self:
+        """Load blog metadata from a source directory."""
+        blog_config_file = src_dir / "blog.toml"
+        if not blog_config_file.exists():
+            logger.info("Blog configuration file not found. Creating a new one.")
+            blog_config_file.write_text(toml.dumps(DEFAULT_BLOG_METADATA))
+
+        return cls(
+            posts=list(process_markdown_files(src_dir)),
+            **toml.load(blog_config_file),
+        )
+
     @property
     def footer(self) -> str | None:
         """Construct the footer text."""
@@ -341,7 +331,7 @@ class BlogWriter(BaseModel):
 
     def copy_css(self) -> None:
         """Copy CSS files to the target directory."""
-        shutil.copy(_get_static_file("bundle.css"), self.target_dir / "bundle.css")
+        shutil.copy(get_static_file("bundle.css"), self.target_dir / "bundle.css")
 
     def generate(self) -> None:
         """Generate the blog site by writing HTML files and feeds."""
@@ -357,55 +347,9 @@ class BlogWriter(BaseModel):
         self.generate_feed_content()
 
 
-def load_template(name: str) -> Template:
-    """Load a template by name.
-
-    Args:
-        name: Template name without extension
-
-    Returns:
-        Jinja2 template object
-    """
-    return jinja_env.get_template(f"{name}.html.jinja")
-
-
-def build_site(source_dir: Path, target_dir: Path) -> None:
-    """Build a static site from markdown files.
-
-    Args:
-        source_dir: Directory containing markdown files
-        target_dir: Directory to output processed files
-    """
-    # Validate directories
-    if not source_dir.exists() or not source_dir.is_dir():
-        logger.error(f"Source directory {source_dir} not found or not a directory")
-        return
-
-    if not target_dir.exists():
-        target_dir.mkdir(parents=True)
-        logger.info(f"Created target directory {target_dir}")
-    elif not target_dir.is_dir():
-        logger.error(f"Target directory {target_dir} is not a directory")
-        return
-
-    blog_config_file = source_dir / "blog.toml"
-    if not blog_config_file.exists():
-        blog_config_file.write_text(toml.dumps(DEFAULT_BLOG_METADATA))
-
-    BlogWriter(
-        blog=Blog(
-            posts=list(process_markdown_files(source_dir)),
-            **toml.load(blog_config_file),
-        ),
-        target_dir=target_dir,
-    ).generate()
-
-    logger.info(f"Building site from {source_dir} to {target_dir}")
-
-
-def process_markdown_files(source_dir: Path) -> Generator[Post, Any, None]:
+def process_markdown_files(src_dir: Path) -> Generator[Post, Any, None]:
     # Process markdown files
-    for file in source_dir.iterdir():
+    for file in src_dir.iterdir():
         if file.suffix != ".md":
             logger.debug(f"Skipping non-Markdown file {file}")
             continue

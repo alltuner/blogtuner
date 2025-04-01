@@ -1,26 +1,22 @@
 {% extends 'base.html.jinja' %}
 {% block title %}{% if blog.name %}{{ blog.name }}{% else %}Blog Posts{% endif %}{% endblock %}
 {% block body %}
-  <section>
-    <h1>{% if blog.name %}{{ blog.name }}{% else %}Blog Posts{% endif %}</h1>
-    {%- if blog.description %}
-      <p class="blog-description">{{ blog.description }}</p>
-    {%- endif %}
-    {%- if blog.public_posts %}
-      <ul class="post-list">
-        {%- for post in blog.public_posts %}
-          <li>
-            <a href="{{ blog.base_path }}{{ post.html_file_name }}"
-              >{{ post.title }}</a
-            >
-            <time datetime="{{ post.pubdate | date('%Y-%m-%d') }}"
-              >{{ post.pubdate | date('%B %d, %Y') }}</time
-            >
-          </li>
-        {% endfor %}
-      </ul>
-    {%- else %}
-      <p>No posts found.</p>
-    {%- endif %}
-  </section>
+<section>
+  <h1>{% if blog.name %}{{ blog.name }}{% else %}Blog Posts{% endif %}</h1>
+  {%- if blog.description %}
+  <p class="blog-description">{{ blog.description }}</p>
+  {%- endif %}
+  {%- if blog.sorted_public_posts %}
+  <ul class="post-list">
+    {%- for post in blog.sorted_public_posts %}
+    <li>
+      <a href="{{ blog.base_path }}{{ post.html_filename }}">{{ post.title }}</a>
+      <time datetime="{{ post.pubdate | date('%Y-%m-%d') }}">{{ post.pubdate | date('%B %d, %Y') }}</time>
+    </li>
+    {% endfor %}
+  </ul>
+  {%- else %}
+  <p>No posts found.</p>
+  {%- endif %}
+</section>
 {% endblock %}

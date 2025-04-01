@@ -1,5 +1,3 @@
-import logging
-from enum import StrEnum
 from pathlib import Path
 
 import typer
@@ -8,6 +6,7 @@ from rich.table import Table
 from typing_extensions import Annotated
 
 from . import logger
+from .logs import LogLevel, setup_logging
 from .models import BlogConfig, BlogGenerator, CliState
 from .paths import setup_target_dir
 
@@ -15,14 +14,6 @@ from .paths import setup_target_dir
 cli_state = CliState()
 
 console = Console()
-
-
-class LogLevel(StrEnum):
-    DEBUG = "DEBUG"
-    INFO = "INFO"
-    WARNING = "WARNING"
-    ERROR = "ERROR"
-    CRITICAL = "CRITICAL"
 
 
 app = typer.Typer(no_args_is_help=True)
@@ -50,10 +41,8 @@ def main(
         ),
     ] = Path("."),
 ) -> None:
-    logging.basicConfig(
-        level=log_level, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
     cli_state.src_dir = src_dir
+    setup_logging(level=log_level)
 
 
 @app.command()

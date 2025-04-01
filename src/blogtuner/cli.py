@@ -3,6 +3,8 @@ from enum import StrEnum
 from pathlib import Path
 
 import typer
+from rich.console import Console
+from rich.table import Table
 from typing_extensions import Annotated
 
 from . import logger
@@ -11,6 +13,8 @@ from .paths import setup_target_dir
 
 
 cli_state = CliState()
+
+console = Console()
 
 
 class LogLevel(StrEnum):
@@ -73,9 +77,18 @@ def build(
 
 @app.command()
 def list() -> None:
-    typer.echo("List list posts")
-    logger.info("List posts")
-    logger.debug("Debugging list posts")
+    blog = Blog.from_src_dir(cli_state.src_dir)
+    table = Table("ID", "Status", "Slug", "Title", "Date", title="Blog Posts")
+    for id, post in enumerate(blog.sorted().posts):
+        table.add_row(
+            str(id),
+            "PUBLIC" if not post.draft else "DRAFT",
+            post.slug,
+            post.title,
+            str(post.short_pubdate),
+        )
+
+    console.print(table)
 
 
 @app.command()

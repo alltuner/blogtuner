@@ -174,6 +174,10 @@ class Post(BaseModel):
         )
 
     @property
+    def short_pubdate(self) -> str:
+        return self.pubdate.strftime("%Y-%m-%d")
+
+    @property
     def html_file_name(self) -> str:
         return f"{self.slug}.html"
 

@@ -165,6 +165,7 @@ class BlogPost(BaseModel):
 class BlogConfig(BaseModel):
     """Blog configuration and posts."""
 
+    src_dir: Path
     base_url: Optional[HttpUrl] = None
     base_path: str = "/"
     author: Optional[str] = None
@@ -174,6 +175,11 @@ class BlogConfig(BaseModel):
     footer_text: Optional[str] = None
     timezone: str = Field(default="UTC", alias="tz")
     posts: List[BlogPost] = []
+
+    @property
+    def used_slugs(self) -> set[str]:
+        """Get a set of all used slugs."""
+        return {post.slug for post in self.posts}
 
     @classmethod
     def from_directory(cls, src_dir: Path) -> Self:
@@ -205,7 +211,17 @@ class BlogConfig(BaseModel):
             logger.debug(f"Processed {filepath}")
 
         # Return configured blog
-        return cls(posts=posts, **toml.load(config_file))
+        return cls(src_dir=src_dir, posts=posts, **toml.load(config_file))
+
+    def import_markdown_file(self, filepath: Path) -> None:
+        """Import a Markdown file into the blog."""
+        logger.info(f"Importing {filepath} into blog")
+
+        post = BlogPost.from_markdown_file(
+            filepath=filepath,
+            used_slugs=self.used_slugs,
+        )
+        post.save(src_dir=self.src_dir)
 
     @property
     def footer(self) -> Optional[str]:
@@ -253,13 +269,13 @@ class BlogGenerator(BaseModel):
     """Handles generation of blog files from BlogConfig."""
 
     blog: BlogConfig
-    output_dir: Path = Field(..., alias="target_dir")
+    target_dir: Path
 
     def generate_html_posts(self) -> None:
         """Generate HTML files for all posts."""
         template = load_template("post")
         for post in self.blog.posts:
-            output_path = self.output_dir / post.html_filename
+            output_path = self.target_dir / post.html_filename
             output_path.write_text(template.render(blog=self.blog, post=post))
             logger.info(f"Created HTML file: {output_path}")
 
@@ -296,23 +312,25 @@ class BlogGenerator(BaseModel):
             entry.published(post.pubdate.replace(tzinfo=tz_info))
 
         # Write feed file
-        feed_path = self.output_dir / "feed.xml"
+        feed_path = self.target_dir / "feed.xml"
         feed_path.write_text(feed.atom_str(pretty=True).decode("utf-8"))
         logger.info(f"Created XML feed: {feed_path}")
 
     def generate_index(self) -> None:
         """Generate the main index.html file."""
-        index_path = self.output_dir / "index.html"
+        index_path = self.target_dir / "index.html"
         index_path.write_text(load_template("list").render(blog=self.blog))
         logger.info(f"Created blog index HTML file: {index_path}")
 
     def copy_assets(self) -> None:
         """Copy CSS and other static assets to the output directory."""
-        shutil.copy(get_static_file("bundle.css"), self.output_dir / "bundle.css")
+        shutil.copy(get_static_file("bundle.css"), self.target_dir / "bundle.css")
         logger.info("Copied CSS assets")
 
     def generate_site(self) -> None:
         """Generate the complete blog site."""
+        logger.info(f"Building site from {self.blog.src_dir} to {self.target_dir}")
+
         self.copy_assets()
         self.generate_html_posts()
         self.generate_index()

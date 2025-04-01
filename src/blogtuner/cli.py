@@ -5,10 +5,9 @@ from rich.console import Console
 from rich.table import Table
 from typing_extensions import Annotated
 
-from . import logger
+from .builder import build_site
 from .logs import LogLevel, setup_logging
-from .models import BlogConfig, BlogGenerator, CliState
-from .paths import setup_target_dir
+from .models import BlogConfig, CliState
 
 
 cli_state = CliState()
@@ -17,6 +16,8 @@ console = Console()
 
 
 app = typer.Typer(no_args_is_help=True)
+import_app = typer.Typer(no_args_is_help=True)
+app.add_typer(import_app, name="import", help="Import blog posts")
 
 
 @app.callback(invoke_without_command=True)
@@ -45,26 +46,19 @@ def main(
     setup_logging(level=log_level)
 
 
-@app.command()
+@app.command(help="Build the blog site")
 def build(
     target_dir: Annotated[
         Path,
         typer.Argument(
-            envvar="BLOGTUNER_TARGET_DIR",
-            help="The target directory to build to",
+            envvar="BLOGTUNER_TARGET_DIR", help="The target directory to build to"
         ),
     ],
 ) -> None:
-    setup_target_dir(target_dir)
-    blog_writer = BlogGenerator(
-        blog=BlogConfig.from_directory(cli_state.src_dir), target_dir=target_dir
-    )
-    logger.info(f"Building site from {cli_state.src_dir} to {target_dir}")
-
-    blog_writer.generate_site()
+    build_site(target_dir, BlogConfig.from_directory(cli_state.src_dir))
 
 
-@app.command()
+@app.command(help="List all blog posts")
 def list() -> None:
     blog = BlogConfig.from_directory(cli_state.src_dir)
     table = Table("ID", "Status", "Slug", "Title", "Date", title="Blog Posts")
@@ -80,7 +74,33 @@ def list() -> None:
     console.print(table)
 
 
-@app.command()
+@import_app.command(help="Import a markdown file as a blog post")
+def markdown(
+    markdown_file: Annotated[
+        Path,
+        typer.Argument(
+            help="The source directory to build from",
+            exists=True,
+            dir_okay=False,
+            file_okay=True,
+            resolve_path=True,
+            readable=True,
+        ),
+    ],
+    target_dir: Annotated[
+        Path,
+        typer.Argument(
+            envvar="BLOGTUNER_TARGET_DIR", help="The target directory to build to"
+        ),
+    ],
+) -> None:
+    blog = BlogConfig.from_directory(cli_state.src_dir)
+    blog.import_markdown_file(markdown_file)
+
+    build_site(target_dir, blog)
+
+
+@app.command(help="Show the version of the application")
 def version() -> None:
     import importlib.metadata
 

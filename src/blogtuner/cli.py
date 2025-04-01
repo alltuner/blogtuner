@@ -8,7 +8,7 @@ from rich.table import Table
 from typing_extensions import Annotated
 
 from . import logger
-from .models import Blog, BlogWriter, CliState
+from .models import BlogConfig, BlogGenerator, CliState
 from .paths import setup_target_dir
 
 
@@ -67,25 +67,25 @@ def build(
     ],
 ) -> None:
     setup_target_dir(target_dir)
-    blog_writer = BlogWriter(
-        blog=Blog.from_src_dir(cli_state.src_dir), target_dir=target_dir
+    blog_writer = BlogGenerator(
+        blog=BlogConfig.from_directory(cli_state.src_dir), target_dir=target_dir
     )
     logger.info(f"Building site from {cli_state.src_dir} to {target_dir}")
 
-    blog_writer.generate()
+    blog_writer.generate_site()
 
 
 @app.command()
 def list() -> None:
-    blog = Blog.from_src_dir(cli_state.src_dir)
+    blog = BlogConfig.from_directory(cli_state.src_dir)
     table = Table("ID", "Status", "Slug", "Title", "Date", title="Blog Posts")
-    for id, post in enumerate(blog.sorted().posts):
+    for id, post in enumerate(blog.get_sorted_posts()):
         table.add_row(
             str(id),
             "PUBLIC" if not post.draft else "DRAFT",
             post.slug,
             post.title,
-            str(post.short_pubdate),
+            str(post.short_date),
         )
 
     console.print(table)

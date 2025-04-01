@@ -53,17 +53,6 @@ def move_file_with_git_awareness(source: Path, destination: Path) -> Path:
     return destination
 
 
-def format_short_date(date: dt.datetime) -> str:
-    """Format a datetime as a short date string (YYYY-MM-DD)."""
-    return date.strftime("%Y-%m-%d")
-
-
-class CliState(BaseModel):
-    """Holds the state for CLI operations."""
-
-    src_dir: Path = Path(".")
-
-
 class BlogPost(BaseModel):
     """Represents a blog post with metadata and content."""
 
@@ -77,7 +66,11 @@ class BlogPost(BaseModel):
     @property
     def short_date(self) -> str:
         """Return the publication date in YYYY-MM-DD format."""
-        return format_short_date(self.pubdate)
+        return self.pubdate.strftime("%Y-%m-%d")
+
+    @property
+    def filename(self) -> str:
+        return f"{self.short_date}-{self.slug}.md"
 
     @property
     def html_filename(self) -> str:
@@ -97,10 +90,6 @@ class BlogPost(BaseModel):
     def html_content(self) -> str:
         """Render markdown content as HTML."""
         return str(mistune.html(self.content))
-
-    @property
-    def filename(self) -> str:
-        return f"{format_short_date(self.pubdate)}-{self.slug}.md"
 
     def save(self, src_dir: Path) -> None:
         """Write normalized metadata back to file."""
@@ -180,6 +169,43 @@ class BlogConfig(BaseModel):
     def used_slugs(self) -> set[str]:
         """Get a set of all used slugs."""
         return {post.slug for post in self.posts}
+
+    def unpublish_post(self, slug: str) -> None:
+        """Unpublish a post by slug."""
+        for post in self.posts:
+            if post.slug == slug:
+                post.draft = True
+                post.save(src_dir=self.src_dir)
+                logger.info(f"Unpublished post {slug}")
+                return
+
+        logger.warning(f"Post with slug {slug} not found")
+
+    def publish_post(self, slug: str) -> None:
+        """Publish a post by slug."""
+        for post in self.posts:
+            if post.slug == slug:
+                post.draft = False
+                post.save(src_dir=self.src_dir)
+                logger.info(f"Published post {slug}")
+                return
+
+        logger.warning(f"Post with slug {slug} not found")
+
+    def delete_post(self, slug: str) -> None:
+        """Delete a post by slug."""
+        logger.warning(
+            "This is a destructive operation, for safety, we don't remove files from git even if the source directory is revision controlled."
+        )
+        for post in self.posts:
+            if post.slug == slug:
+                filepath = self.src_dir / post.filename
+                if filepath.exists():
+                    filepath.unlink()
+                    logger.info(f"Deleted post {slug}")
+                return
+
+        logger.warning(f"Post with slug {slug} not found")
 
     @classmethod
     def from_directory(cls, src_dir: Path) -> Self:

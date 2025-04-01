@@ -1,26 +1,37 @@
 from pathlib import Path
 
 import typer
+from pydantic import BaseModel
 from rich.console import Console
 from rich.table import Table
 from typing_extensions import Annotated
 
 from .builder import build_site
 from .logs import LogLevel, setup_logging
-from .models import BlogConfig, CliState
+from .models import BlogConfig
+
+
+class CliState(BaseModel):
+    src_dir: Path = Path(".")
 
 
 cli_state = CliState()
-
 console = Console()
 
 
 app = typer.Typer(no_args_is_help=True)
 import_app = typer.Typer(no_args_is_help=True)
-app.add_typer(import_app, name="import", help="Import blog posts")
+post_app = typer.Typer(no_args_is_help=True)
+app.add_typer(post_app, name="post", help="Manage blog posts")
+post_app.add_typer(import_app, name="import", help="Import blog posts")
 
 
-@app.callback(invoke_without_command=True)
+@post_app.callback(invoke_without_command=True)
+def post_callback() -> None:
+    console.print("If you make any changes, please remember to rebuild the site.")
+
+
+@app.callback(invoke_without_command=False)
 def main(
     log_level: Annotated[
         LogLevel,
@@ -58,7 +69,7 @@ def build(
     build_site(target_dir, BlogConfig.from_directory(cli_state.src_dir))
 
 
-@app.command(help="List all blog posts")
+@post_app.command(help="List all blog posts")
 def list() -> None:
     blog = BlogConfig.from_directory(cli_state.src_dir)
     table = Table("ID", "Status", "Slug", "Title", "Date", title="Blog Posts")
@@ -74,12 +85,51 @@ def list() -> None:
     console.print(table)
 
 
-@import_app.command(help="Import a markdown file as a blog post")
-def markdown(
+@post_app.command(help="Unpublish a blog post", name="unpublish")
+def post_unpublish(
+    slug: Annotated[
+        str,
+        typer.Argument(
+            help="The slug of the post to unpublish",
+        ),
+    ],
+) -> None:
+    blog = BlogConfig.from_directory(cli_state.src_dir)
+    blog.unpublish_post(slug)
+
+
+@post_app.command(help="Publish a blog post", name="publish")
+def post_publish(
+    slug: Annotated[
+        str,
+        typer.Argument(
+            help="The slug of the post to publish",
+        ),
+    ],
+) -> None:
+    blog = BlogConfig.from_directory(cli_state.src_dir)
+    blog.publish_post(slug)
+
+
+@post_app.command(help="Delete a blog post", name="delete")
+def post_delete(
+    slug: Annotated[
+        str,
+        typer.Argument(
+            help="The slug of the post to delete",
+        ),
+    ],
+) -> None:
+    blog = BlogConfig.from_directory(cli_state.src_dir)
+    blog.delete_post(slug)
+
+
+@import_app.command(help="Import a markdown file as a blog post", name="markdown")
+def import_markdown(
     markdown_file: Annotated[
         Path,
         typer.Argument(
-            help="The source directory to build from",
+            help="The markdown file to import as a blog post",
             exists=True,
             dir_okay=False,
             file_okay=True,
@@ -87,17 +137,9 @@ def markdown(
             readable=True,
         ),
     ],
-    target_dir: Annotated[
-        Path,
-        typer.Argument(
-            envvar="BLOGTUNER_TARGET_DIR", help="The target directory to build to"
-        ),
-    ],
 ) -> None:
     blog = BlogConfig.from_directory(cli_state.src_dir)
     blog.import_markdown_file(markdown_file)
-
-    build_site(target_dir, blog)
 
 
 @app.command(help="Show the version of the application")

@@ -63,6 +63,11 @@ class BlogPost(BaseModel):
     draft: bool = False
     content: str = ""
 
+    # Extra metadata fields
+    tags: List[str] = []
+    oneliner: Optional[str] = None
+    thumbnail: Optional[str] = None
+
     @property
     def short_date(self) -> str:
         """Return the publication date in YYYY-MM-DD format."""
@@ -110,16 +115,11 @@ class BlogPost(BaseModel):
         metadata = md_data.metadata
 
         # Determine publication date
-        pubdate = (
+        metadata["pubdate"] = (
             dateparse(str(metadata.get("pubdate")))
             if metadata.get("pubdate")
             else dt.datetime.fromtimestamp(filepath.stat().st_mtime)
         )
-
-        if not metadata.get("pubdate"):
-            logger.info(
-                f"No publication date found for {filepath}. Using file timestamp."
-            )
 
         # Extract slug from filename or metadata
         date_filename_match = re.match(r"^\d{4}-\d{2}-\d{2}-(.*)", filepath.stem)
@@ -129,12 +129,13 @@ class BlogPost(BaseModel):
         while slug in used_slugs:
             slug = BlogPost.increment_slug_number(slug)
 
+        metadata["slug"] = slug
+        metadata["title"] = metadata.get("title", slug.replace("-", " ").title())
+        metadata["draft"] = metadata.get("draft", False)
+
         return cls(
-            title=str(metadata.get("title", slug.replace("-", " ").title())),
-            slug=slug,
-            pubdate=pubdate,
             content=content,
-            draft=bool(metadata.get("draft", False)),
+            **metadata,
         )
 
     @staticmethod
@@ -164,6 +165,7 @@ class BlogConfig(BaseModel):
     footer_text: Optional[str] = None
     timezone: str = Field(default="UTC", alias="tz")
     posts: List[BlogPost] = []
+    css: Optional[str] = None
 
     @property
     def used_slugs(self) -> set[str]:
@@ -261,7 +263,7 @@ class BlogConfig(BaseModel):
             logger.warning("Base URL is not set")
             return self.base_path
 
-        base = str(self.base_url)
+        base = str(self.base_url).rstrip("/")
         path = self.base_path.lstrip("/")
         return f"{base}/{path}" if path else base
 

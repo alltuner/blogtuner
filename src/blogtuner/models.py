@@ -261,7 +261,7 @@ class BlogConfig(BaseModel):
             logger.warning("Base URL is not set")
             return self.base_path
 
-        base = str(self.base_url)
+        base = str(self.base_url).rstrip("/")
         path = self.base_path.lstrip("/")
         return f"{base}/{path}" if path else base
 

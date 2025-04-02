@@ -1,16 +1,29 @@
 <!DOCTYPE html>
-<html lang="{{ blog.lang if blog.lang else '' }}">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{% block title %}{% endblock %}</title>
-    <link rel="stylesheet" href="{{ blog.blog_path }}bundle.css">
-  <body>
-    <main>{% block body %}{% endblock %}</main>
-    {% if blog.footer %}
-      <footer>
-        {{ blog.footer | safe }}
-      </footer>
-    {% endif %}
-  </body>
+<html lang="{{ blog.lang if blog.lang else 'en' }}" class="h-full">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}{% endblock %}</title>
+  {% if blog.css %}
+  <link rel="stylesheet" href="{{ blog.css }}" />
+  {% else %}
+  <link rel="stylesheet" href="{{ blog.blog_path }}bundle.css">
+  {% endif %}
+</head>
+
+<body class="min-h-full flex flex-col bg-white font-serif dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+  <main class="flex-grow container mx-auto px-4 py-8">
+    {% block body %}{% endblock %}
+  </main>
+
+  {% if blog.footer %}
+  <footer class="mt-auto border-t border-gray-200 dark:border-gray-700 py-6 px-4">
+    <div class="container mx-auto">
+      {{ blog.footer | safe }}
+    </div>
+  </footer>
+  {% endif %}
+</body>
+
 </html>

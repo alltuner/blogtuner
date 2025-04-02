@@ -7,17 +7,16 @@ from typing import Any, Dict, List, Optional, Self, cast
 
 import frontmatter  # type: ignore
 import git
-import mistune
 import toml
 from dateutil import tz
 from dateutil.parser import parse as dateparse
 from feedgen.feed import FeedGenerator  # type: ignore
 from loguru import logger
-from mdformat import text as mdformat
 from pydantic import BaseModel, Field, HttpUrl
 from slugify import slugify
 
 from .constants import DEFAULT_BLOG_METADATA, DEFAULT_POST_METADATA
+from .markdown import css_styles, format_markdown, to_html
 from .paths import get_static_file
 from .templates import load_template
 
@@ -94,7 +93,7 @@ class BlogPost(BaseModel):
     @property
     def html_content(self) -> str:
         """Render markdown content as HTML."""
-        return str(mistune.html(self.content))
+        return str(to_html(self.content))
 
     def save(self, src_dir: Path) -> None:
         """Write normalized metadata back to file."""
@@ -111,7 +110,6 @@ class BlogPost(BaseModel):
     def from_markdown_file(cls, filepath: Path, used_slugs: set[str]) -> Self:
         # Parse frontmatter and content
         md_data = frontmatter.loads(filepath.read_text(), **DEFAULT_POST_METADATA)
-        content = mdformat(md_data.content)
         metadata = md_data.metadata
 
         # Determine publication date
@@ -134,7 +132,7 @@ class BlogPost(BaseModel):
         metadata["draft"] = metadata.get("draft", False)
 
         return cls(
-            content=content,
+            content=format_markdown(md_data.content),
             **metadata,
         )
 
@@ -352,6 +350,8 @@ class BlogGenerator(BaseModel):
 
     def copy_assets(self) -> None:
         """Copy CSS and other static assets to the output directory."""
+        extra_css = self.target_dir / "extra.css"
+        extra_css.write_text(css_styles)
         shutil.copy(get_static_file("bundle.css"), self.target_dir / "bundle.css")
         logger.info("Copied CSS assets")
 

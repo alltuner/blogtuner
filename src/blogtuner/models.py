@@ -333,6 +333,8 @@ class BlogGenerator(BaseModel):
             entry_url = f"{blog_url}{post.html_filename}"
             entry = feed.add_entry()
             entry.id(entry_url)
+            if post.oneliner:
+                entry.description(post.oneliner, isSummary=True)
             entry.title(post.title)
             entry.link(href=entry_url)
             entry.content(post.html_content, type="html")

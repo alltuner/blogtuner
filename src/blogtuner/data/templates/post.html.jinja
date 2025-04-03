@@ -28,8 +28,25 @@
     class="prose prose-lg max-w-none dark:prose-invert mb-10 leading-normal prose-h1:text-3xl prose-headings:text-gray-500">
     {{ post.html_content |safe }}
   </article>
-  {%- if post.tags %}
   <footer class="border-t border-gray-200 pt-6 mt-10">
+    {% if post.original_href %}
+    <div class="mb-6">
+      <h2 class="text-lg font-semibold mb-2">Originally published</h2>
+      <div class="text-gray-600">
+        <a href="{{ post.original_href }}" class="text-blue-600 hover:text-blue-800 transition-colors duration-200"
+          target="_blank" rel="noopener">
+          {{ post.original_href }}
+        </a>
+        {% if post.original_pubdate %}
+        <div class="mt-1">
+          <time datetime="{{ post.original_pubdate|date('%Y-%m-%d') }}">{{ post.original_pubdate|date('%B %d, %Y')
+            }}</time>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+    {%- if post.tags %}
     <div class="mb-6">
       <h2 class="text-lg font-semibold mb-2">Tags</h2>
       <ul class="flex flex-wrap gap-2">
@@ -38,8 +55,8 @@
         {% endfor %}
       </ul>
     </div>
+    {% endif %}
   </footer>
-  {% endif %}
 </article>
 <nav class="max-w-3xl mx-auto mt-10 pt-6 border-t border-gray-200">
   <p>

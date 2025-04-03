@@ -12,7 +12,7 @@ from dateutil import tz
 from dateutil.parser import parse as dateparse
 from feedgen.feed import FeedGenerator  # type: ignore
 from loguru import logger
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field, HttpUrl, field_serializer
 from slugify import slugify
 
 from .constants import DEFAULT_BLOG_METADATA, DEFAULT_POST_METADATA
@@ -66,6 +66,15 @@ class BlogPost(BaseModel):
     tags: List[str] = []
     oneliner: Optional[str] = None
     thumbnail: Optional[str] = None
+
+    # Original publication
+    original_href: Optional[HttpUrl] = None
+    original_pubdate: Optional[dt.datetime] = None
+
+    @field_serializer("original_href")
+    def serialize_original_href(self, value: Optional[HttpUrl]) -> Optional[str]:
+        """Serialize original_href to a string."""
+        return str(value) if value else None
 
     @property
     def short_date(self) -> str:

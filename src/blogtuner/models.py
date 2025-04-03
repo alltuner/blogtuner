@@ -159,6 +159,7 @@ class BlogConfig(BaseModel):
     author: Optional[str] = None
     name: Optional[str] = None
     lang: Optional[str] = None
+    description: Optional[str] = None
     url: Optional[str] = None
     footer_text: Optional[str] = None
     timezone: str = Field(default="UTC", alias="tz")

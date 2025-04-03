@@ -18,7 +18,7 @@
     {%- for post in blog.sorted_public_posts %}
     <li class="flex items-start border-b border-gray-200 pb-6">
       <div class="flex-1 pr-6">
-        <h2 class="text-xl font-semibold mb-2">
+        <h2 class="text-xl font-semibold mb-2">{% if post.pinned %}📌 {% endif %}
           <a href="{{ blog.base_path }}{{ post.html_filename }}"
             class="hover:text-blue-600 transition-colors duration-200">
             {{ post.title }}

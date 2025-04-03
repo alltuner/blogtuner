@@ -116,6 +116,9 @@ class BlogPost(BaseModel):
     # Post images
     image: Optional[Image] = None
 
+    # Pinning (pinned posts will be displayed first)
+    pinned: bool = False
+
     # Extra metadata fields
     tags: List[str] = []
     oneliner: Optional[str] = None
@@ -373,9 +376,14 @@ class BlogConfig(BaseModel):
 
     @cached_property
     def sorted_public_posts(self) -> List[BlogPost]:
-        """Get public posts sorted by date descending."""
+        """Get public posts sorted by pinned status first, then by date descending."""
+        publishable_posts = self.get_publishable_posts()
         return sorted(
-            self.get_publishable_posts(), key=lambda post: post.pubdate, reverse=True
+            publishable_posts,
+            key=lambda post: (
+                not getattr(post, "pinned", False),
+                -post.pubdate.timestamp(),
+            ),
         )
 
 

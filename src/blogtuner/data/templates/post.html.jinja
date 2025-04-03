@@ -18,7 +18,7 @@
     </div>
     {% if post.thumbnail %}
     <div class="flex-shrink-0">
-      <img src="{{ post.thumbnail }}" alt="Featured image for {{ post.title }}"
+      <img src="{{ blog.base_path }}{{ post.thumbnail }}" alt="Featured image for {{ post.title }}"
         class="w-32 h-32 rounded-lg shadow-sm object-cover">
     </div>
     {% endif %}

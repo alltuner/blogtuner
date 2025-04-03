@@ -53,8 +53,8 @@
 
       {% if post.thumbnail %}
       <div class="flex-shrink-0 mt-1">
-        <img src="{{ post.thumbnail }}" alt="Thumbnail for {{ post.title }}" width="128" height="128"
-          class="rounded-lg shadow-sm object-cover">
+        <img class="w-32 h-32" src="{{ blog.base_path }}{{ post.thumbnail }}" alt="Thumbnail for {{ post.title }}"
+          width="128" height="128" class="rounded-lg shadow-sm object-cover">
       </div>
       {% endif %}
     </li>

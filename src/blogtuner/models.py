@@ -1,4 +1,5 @@
 import datetime as dt
+import hashlib
 import re
 import shutil
 from functools import cached_property
@@ -12,13 +13,63 @@ from dateutil import tz
 from dateutil.parser import parse as dateparse
 from feedgen.feed import FeedGenerator  # type: ignore
 from loguru import logger
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field, HttpUrl, computed_field
 from slugify import slugify
 
 from .constants import DEFAULT_BLOG_METADATA, DEFAULT_POST_METADATA
+from .images import (
+    create_web_thumbnail_from_bytes,
+    create_webp_image_from_bytes,
+    find_image_file,
+)
 from .markdown import css_styles, format_markdown, to_html
 from .paths import get_static_file
 from .templates import load_template
+
+
+class Image(BaseModel):
+    bytes_: bytes = b""
+    suffix: Optional[str] = ""
+
+    @computed_field  # type: ignore[misc]
+    @cached_property
+    def checksum(self) -> str | None:
+        """Calculate the checksum of the image bytes."""
+        return hashlib.sha256(self.bytes_).hexdigest()[:10] if self.bytes_ else None
+
+    @cached_property
+    def thumbnail(self) -> bytes:
+        return create_web_thumbnail_from_bytes(self.bytes_)
+
+    @cached_property
+    def image(self) -> bytes:
+        return create_webp_image_from_bytes(self.bytes_)
+
+    @property
+    def image_length(self) -> int:
+        return len(self.image)
+
+
+class ImageFile(Image):
+    filepath: Path
+
+    @classmethod
+    def from_path(cls, src_dir: Path, stems: str | set[str]) -> Self | None:
+        """Load image file from the specified path."""
+        if isinstance(stems, str):
+            stems = {stems}
+
+        for stem in stems:
+            logger.debug(f"Checking for image file with stem: {stem} in {src_dir}")
+            image_file = find_image_file(src_dir, stem)
+            if image_file:
+                return cls(
+                    bytes_=image_file.read_bytes(),
+                    filepath=image_file,
+                    suffix=image_file.suffix,
+                )
+
+        return None
 
 
 def move_file_with_git_awareness(source: Path, destination: Path) -> Path:
@@ -62,10 +113,19 @@ class BlogPost(BaseModel):
     draft: bool = False
     content: str = ""
 
+    # Post images
+    image: Optional[Image] = None
+
     # Extra metadata fields
     tags: List[str] = []
     oneliner: Optional[str] = None
-    thumbnail: Optional[str] = None
+
+    @property
+    def thumbnail(self) -> str | None:
+        if self.image and self.image.checksum:
+            return f"{self.image.checksum}.thumbnail.webp"
+
+        return None
 
     @property
     def short_date(self) -> str:
@@ -74,7 +134,12 @@ class BlogPost(BaseModel):
 
     @property
     def filename(self) -> str:
-        return f"{self.short_date}-{self.slug}.md"
+        return f"{self.stem}.md"
+
+    @property
+    def stem(self) -> str:
+        """Get the stem of the filename."""
+        return f"{self.short_date}-{self.slug}"
 
     @property
     def html_filename(self) -> str:
@@ -85,7 +150,7 @@ class BlogPost(BaseModel):
     def metadata(self) -> Dict[str, Any]:
         """Extract metadata for serialization, excluding content."""
         return self.model_dump(
-            exclude={"content"},
+            exclude={"content": True, "image": {"bytes_"}},
             exclude_none=True,
             exclude_unset=True,
         )
@@ -229,8 +294,21 @@ class BlogConfig(BaseModel):
             post = BlogPost.from_markdown_file(filepath=filepath, used_slugs=used_slugs)
 
             used_slugs.add(post.slug)
+
             if post.filename != filepath.name:
                 move_file_with_git_awareness(filepath, src_dir / post.filename)
+
+            if image := ImageFile.from_path(src_dir, {post.stem, post.slug}):
+                if image.filepath.stem != post.stem:
+                    move_file_with_git_awareness(
+                        image.filepath,
+                        src_dir / f"{post.stem}{image.filepath.suffix}",
+                    )
+                    logger.info(
+                        f"Moved image from {image.filepath} to {src_dir / f'{post.stem}{image.filepath.suffix}'}"
+                    )
+
+            post.image = image
 
             post.save(src_dir=src_dir)
             posts.append(post)
@@ -301,10 +379,26 @@ class BlogGenerator(BaseModel):
     def generate_html_posts(self) -> None:
         """Generate HTML files for all posts."""
         template = load_template("post")
+        target_dir = self.target_dir
         for post in self.blog.posts:
-            output_path = self.target_dir / post.html_filename
-            output_path.write_text(template.render(blog=self.blog, post=post))
-            logger.info(f"Created HTML file: {output_path}")
+            html_file = target_dir / post.html_filename
+            html_file.write_text(template.render(blog=self.blog, post=post))
+            logger.info(f"Created HTML file: {html_file} for post {post.slug}")
+
+            if post.image and post.image.checksum is not None:
+                thumbnail_file = target_dir / f"{post.image.checksum}.thumbnail.webp"
+                if not thumbnail_file.exists():
+                    thumbnail_file.write_bytes(post.image.thumbnail)
+                    logger.info(
+                        f"Created Thumbnail {thumbnail_file} for post {post.slug}"
+                    )
+
+                image_file = target_dir / f"{post.image.checksum}.webp"
+                if not image_file.exists():
+                    image_file.write_bytes(post.image.image)
+                    logger.info(f"Created Image {image_file} for post {post.slug}")
+
+        logger.info("HTML posts generation complete.")
 
     def generate_feed(self) -> None:
         """Generate an Atom feed for the blog."""
@@ -335,6 +429,11 @@ class BlogGenerator(BaseModel):
             entry.id(entry_url)
             entry.title(post.title)
             entry.link(href=entry_url)
+            if post.image and post.image.checksum:
+                image_url = f"{blog_url}{post.image.checksum}.webp"
+                entry.enclosure(
+                    url=image_url, length=post.image.image_length, type="image/webp"
+                )
             entry.content(post.html_content, type="html")
             entry.published(post.pubdate.replace(tzinfo=tz_info))
 

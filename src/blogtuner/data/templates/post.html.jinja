@@ -1,10 +1,44 @@
 {% extends 'base.html.jinja' %}
 {% block title %}{{ post.title }}{% endblock %}
+
 {% block head %}
+
 {% if post.oneliner %}
 <meta name="description" content="{{ post.oneliner }}" />
+<meta property="og:description" content="{{ post.oneliner }}">
+<meta name="twitter:description" content="{{ post.oneliner }}">
 {% endif %}
+
+{% if post.tags %}
+{% for tag in post.tags %}
+<meta property="article:tag" content="{{ tag }}">
+{% endfor %}
+{% endif %}
+
+{% if post.image_url %}
+<meta property="og:image" content="{{ blog.full_url }}{{ post.image_url }}">
+<meta name="twitter:image" content="{{ blog.full_url }}{{ post.image_url }}">
+{% endif %}
+
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary_large_image">
+
+<meta property="og:url" content="{{ post.full_url }}">
+<meta name="twitter:url" content="{{ post.full_url }}">
+
+<meta property="og:site_name" content="{{ blog.name }}">
+<meta name="twitter:title" content="{{ post.title }}">
+<meta property="og:title" content="{{ post.title }}">
+
+{% if blog.twitter_metadata.site %}
+<meta name="twitter:site" content="{{ blog.twitter_metadata.site }}">
+{% endif %}
+{% if blog.twitter_metadata.creator %}
+<meta name="twitter:creator" content="{{ blog.twitter_metadata.creator }}">
+{% endif %}
+
 {% endblock %}
+
 {% block body %}
 {%- set author = post.author or blog.author or None %}
 <article class="max-w-3xl mx-auto">
@@ -56,7 +90,7 @@
       <h2 class="text-lg font-semibold mb-2">Tags</h2>
       <ul class="flex flex-wrap gap-2">
         {% for tag in post.tags %}
-        <li class="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-sm">{{ tag }}</li>
+        <li class="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-sm">{{ tag | title }}</li>
         {% endfor %}
       </ul>
     </div>

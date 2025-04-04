@@ -54,6 +54,14 @@ class BlogPost(BaseModel):
         return None
 
     @property
+    def image_url(self) -> str | None:
+        """Return the URL of the post image."""
+        if self.image and self.image.checksum:
+            return f"{self.image.checksum}.webp"
+
+        return None
+
+    @property
     def short_date(self) -> str:
         """Return the publication date in YYYY-MM-DD format."""
         return self.pubdate.strftime("%Y-%m-%d")

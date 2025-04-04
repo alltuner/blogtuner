@@ -1,5 +1,10 @@
 {% extends 'base.html.jinja' %}
 {% block title %}{{ post.title }}{% endblock %}
+{% block head %}
+{% if post.oneliner %}
+<meta name="description" content="{{ post.oneliner }}" />
+{% endif %}
+{% endblock %}
 {% block body %}
 {%- set author = post.author or blog.author or None %}
 <article class="max-w-3xl mx-auto">
@@ -66,4 +71,16 @@
     </a>
   </p>
 </nav>
+{%- if blog.links %}
+<footer class="max-w-3xl mx-auto px-4 py-6 border-t border-gray-200 mt-8">
+  <div class="flex flex-wrap justify-center gap-6 text-sm">
+    {% for label, url in blog.links.items() %}
+    <a href="{{ url }}"
+      class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200">
+      {{ label }}
+    </a>
+    {% endfor %}
+  </div>
+</footer>
+{%- endif %}
 {% endblock %}

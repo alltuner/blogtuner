@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field, HttpUrl
 
 from blogtuner.core.post import BlogPost
 from blogtuner.utils.git import move_file_with_git_awareness
-from blogtuner.utils.images import ImageFile
+from blogtuner.utils.images import BlogImage, ImageFile, create_webp_image_from_bytes
 from blogtuner.utils.logs import logger
 
 
@@ -17,10 +17,20 @@ DEFAULT_BLOG_METADATA: Dict[str, Any] = {
     "base_url": None,
     "base_path": "/",
     "author": "Anonymous",
-    "name": "My Blog",
+    "name": "My Blog Powered by BlogTuner",
     "lang": "en",
     "tz": "UTC",
     "footer_text": "Powered by <a href='https://github.com/alltuner/blogtuner'>BlogTuner</a>",
+    "links": {
+        "BlogTuner": "https://github.com/alltuner/blogtuner",
+        "All Tuner Labs": "https://alltuner.com/",
+    },
+    "twitter_metadata": {
+        "site": None,
+        "creator": None,
+    },
+    "description": "A blog powered by BlogTuner",
+    "image_checksum": None,
 }
 
 
@@ -39,6 +49,11 @@ class BlogConfig(BaseModel):
     timezone: str = Field(default="UTC", alias="tz")
     posts: List[BlogPost] = []
     css: Optional[str] = None
+    links: Optional[Dict[str, HttpUrl]] = None
+
+    twitter_metadata: Optional[Dict[str, str | None]] = None
+    image_checksum: Optional[str] = None
+    image: Optional[BlogImage] = None
 
     @property
     def used_slugs(self) -> set[str]:
@@ -87,9 +102,24 @@ class BlogConfig(BaseModel):
         """Load blog configuration and posts from a source directory."""
         # Load or create blog configuration
         config_file = src_dir / "blog.toml"
-        if not config_file.exists():
-            logger.info("Blog configuration file not found. Creating a new one.")
-            config_file.write_text(toml.dumps(DEFAULT_BLOG_METADATA))
+
+        # Load blog configuration
+        configuration = DEFAULT_BLOG_METADATA.copy()
+        if config_file.exists():
+            configuration.update(toml.load(config_file))
+
+        blog_artwork_file = src_dir / "blog_artwork.webp"
+        blog_image = None
+        if blog_artwork_file.exists():
+            blog_image = ImageFile.from_filepath(blog_artwork_file)
+        elif image := ImageFile.from_path(src_dir, "blog"):
+            blog_artwork_file.write_bytes(create_webp_image_from_bytes(image.bytes_))
+            blog_image = ImageFile.from_filepath(blog_artwork_file)
+
+        configuration["image_checksum"] = (
+            f"{blog_image.checksum}" if blog_image else None
+        )
+        config_file.write_text(toml.dumps(configuration))
 
         # Process posts
         posts: list[BlogPost] = []
@@ -124,8 +154,12 @@ class BlogConfig(BaseModel):
 
             logger.debug(f"Processed {filepath}")
 
+        blog_data = configuration.copy()
+        if blog_image:
+            blog_data["image"] = blog_image
+
         # Return configured blog
-        return cls(src_dir=src_dir, posts=posts, **toml.load(config_file))
+        return cls(src_dir=src_dir, posts=posts, **blog_data)
 
     def import_markdown_file(self, filepath: Path) -> None:
         """Import a Markdown file into the blog."""
@@ -141,6 +175,24 @@ class BlogConfig(BaseModel):
     def footer(self) -> Optional[str]:
         """Get the footer text if available."""
         return str(self.footer_text) if self.footer_text else None
+
+    @property
+    def image_url(self) -> Optional[str]:
+        """Get the URL of the blog image if available."""
+        if not self.image:
+            logger.warning("Blog image is not set")
+            return None
+
+        return f"{self.full_url}{self.image_checksum}.webp"
+
+    @property
+    def relative_thumbnail_image_url(self) -> Optional[str]:
+        """Get the URL of the blog image if available."""
+        if not self.image:
+            logger.warning("Blog image is not set")
+            return None
+
+        return f"{self.base_path}{self.image_checksum}.thumbnail.webp"
 
     @property
     def full_url(self) -> str:

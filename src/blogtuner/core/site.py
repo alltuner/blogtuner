@@ -6,12 +6,11 @@ from dateutil import tz
 from feedgen.feed import FeedGenerator  # type: ignore
 from pydantic import BaseModel
 
+from blogtuner.core.blog import BlogConfig
 from blogtuner.rendering.markdown import css_styles
 from blogtuner.rendering.templates import load_template
 from blogtuner.utils.logs import logger
 from blogtuner.utils.paths import get_static_file
-
-from .blog import BlogConfig
 
 
 class BlogGenerator(BaseModel):
@@ -103,6 +102,20 @@ class BlogGenerator(BaseModel):
         index_path.write_text(load_template("list").render(blog=self.blog))
         logger.info(f"Created blog index HTML file: {index_path}")
 
+    def copy_blog_image(self) -> None:
+        if self.blog.image:
+            final_image = self.target_dir / f"{self.blog.image.checksum}.webp"
+            thumbnail_image = (
+                self.target_dir / f"{self.blog.image.checksum}.thumbnail.webp"
+            )
+            if not final_image.exists():
+                final_image.write_bytes(self.blog.image.bytes_)
+
+            if not thumbnail_image.exists():
+                thumbnail_image.write_bytes(self.blog.image.thumbnail)
+
+            logger.info(f"Copied blog image to {final_image}")
+
     def copy_assets(self) -> None:
         """Copy CSS and other static assets to the output directory."""
         extra_css = self.target_dir / "extra.css"
@@ -115,6 +128,7 @@ class BlogGenerator(BaseModel):
         logger.info(f"Building site from {self.blog.src_dir} to {self.target_dir}")
 
         self.copy_assets()
+        self.copy_blog_image()
         self.generate_html_posts()
         self.generate_index()
         self.generate_feed()

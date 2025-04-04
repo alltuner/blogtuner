@@ -1,16 +1,65 @@
 {% extends 'base.html.jinja' %}
 {% block title %}{% if blog.name %}{{ blog.name }}{% else %}Blog Posts{% endif %}{% endblock %}
+{% block head %}
+
+<link rel="canonical" href="{{ blog.full_url }}" />
+
+{% if blog.description %}
+<meta name="description" content="{{ blog.description }}" />
+<meta property="og:description" content="{{ blog.description }}">
+<meta name="twitter:description" content="{{ blog.description }}">
+{% endif %}
+
+{% if blog.base_url %}
+<link rel="alternate" type="application/rss+xml" title="RSS Feed for {{ blog.name }}"
+  href="{{ blog.full_url }}feed.xml">
+{% endif %}
+
+{% if blog.image_url %}
+<meta property="og:image" content="{{ blog.image_url }}">
+<meta name="twitter:image" content="{{ blog.image_url }}">
+{% endif %}
+
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+
+<meta property="og:url" content="{{ blog.full_url }}">
+<meta name="twitter:url" content="{{ blog.full_url }}">
+<meta property="og:site_name" content="{{ blog.name }}">
+
+<meta name="twitter:title" content="{{ blog.name }}{% if blog.description %} | {{ blog.description }}{% endif %}">
+<meta property="og:title" content="{{ blog.name }}{% if blog.description %} | {{ blog.description }}{% endif %}">
+
+{% if blog.twitter_metadata.site %}
+<meta name="twitter:site" content="{{ blog.twitter_metadata.site }}">
+{% endif %}
+{% if blog.twitter_metadata.creator %}
+<meta name="twitter:site" content="{{ blog.twitter_metadata.creator }}">
+{% endif %}
+
+{% endblock %}
 {% block body %}
 <section class="max-w-3xl mx-auto px-4 py-8">
-  <div class="mb-6">
-    <h1 class="text-3xl font-bold">{% if blog.name %}{{ blog.name }}{% else %}Blog Posts{% endif %}</h1>
-    {%- if blog.author %}
-    <div class="text-gray-600 mt-1">by {{ blog.author }}</div>
-    {%- endif %}
+  <div class="mb-6 flex items-center">
+    {% if blog.relative_thumbnail_image_url %}
+    <div class="mr-4 flex-shrink-0">
+      <img src="{{ blog.relative_thumbnail_image_url }}" alt="{{ blog.name }} thumbnail" width="128" height="128"
+        class="rounded-lg shadow-sm object-cover">
+    </div>
+    {% endif %}
+    <div>
+      <h1 class="text-3xl font-bold">{% if blog.name %}{{ blog.name }}{% else %}Blog Posts{% endif %}</h1>
+      {%- if blog.author %}
+      <div class="text-gray-600 mt-1">by {{ blog.author }}</div>
+      {%- endif %}
+    </div>
   </div>
 
   {%- if blog.description %}
-  <p class="text-gray-600 mb-8">{{ blog.description }}</p>
+  <div
+    class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 p-5 rounded-lg shadow-sm mb-8 border-l-4 border-blue-400 dark:border-indigo-600">
+    <p class="text-gray-700 dark:text-gray-300 italic leading-relaxed">{{ blog.description }}</p>
+  </div>
   {%- endif %}
 
   {%- if blog.sorted_public_posts %}
@@ -64,4 +113,16 @@
   <p class="text-gray-600">No posts found.</p>
   {%- endif %}
 </section>
+{%- if blog.links %}
+<footer class="max-w-3xl mx-auto px-4 py-6 border-gray-200 mt-8">
+  <div class="flex flex-wrap justify-center gap-6 text-sm">
+    {% for label, url in blog.links.items() %}
+    <a href="{{ url }}"
+      class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200">
+      {{ label }}
+    </a>
+    {% endfor %}
+  </div>
+</footer>
+{%- endif %}
 {% endblock %}

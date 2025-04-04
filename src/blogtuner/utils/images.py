@@ -11,7 +11,7 @@ from blogtuner.utils.logs import logger
 from blogtuner.utils.paths import save_image
 
 
-class PostImage(BaseModel):
+class BlogImage(BaseModel):
     bytes_: bytes = b""
     suffix: Optional[str] = ""
 
@@ -34,7 +34,10 @@ class PostImage(BaseModel):
         return len(self.image)
 
 
-class ImageFile(PostImage):
+PostImage = BlogImage
+
+
+class ImageFile(BlogImage):
     filepath: Path
 
     @classmethod
@@ -54,6 +57,18 @@ class ImageFile(PostImage):
                 )
 
         return None
+
+    @classmethod
+    def from_filepath(cls, filepath: Path) -> Self:
+        """Load image file from the specified path."""
+        if not filepath.exists():
+            raise FileNotFoundError(f"File {filepath} does not exist.")
+
+        return cls(
+            bytes_=filepath.read_bytes(),
+            filepath=filepath,
+            suffix=filepath.suffix,
+        )
 
     @classmethod
     def from_url(cls, url: str, stem: str, save_dir: Path) -> Self:

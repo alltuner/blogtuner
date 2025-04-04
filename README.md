@@ -11,13 +11,18 @@ BlogTuner is a ridiculously simple static blog generator that converts Markdown 
 - **Dead Simple**: Convert Markdown to HTML—that's it
 - **Lightning Fast** ⚡: Generates your entire site in milliseconds
 - **No Excuses** 🙅: Removes all barriers to daily blogging
-- **RSS Ready** 📡: Automatically generates an Atom feed
+- **RSS Ready** 📡: Automatically generates a feed for your blog
 - **Markdown Power** 📝: Write in Markdown, publish as HTML
 - **Smart Defaults** 🧠: Sensible defaults with minimal configuration
-- **Draft Support** 📋: Mark posts as drafts with frontmatter or naming
+- **Draft Support** 📋: Mark posts as drafts with frontmatter
 - **Date Flexibility** 📅: Use frontmatter dates or file timestamps
 - **Smart File Organization** 🗃️: Git-aware file renaming to standard format
 - **GitHub Pages Ready** 🚀: Generate static HTML perfect for free hosting
+- **Substack Import** 📥: Import posts from Substack blogs with a single command
+- **Image Support** 🖼️: Automatic image processing, optimization and thumbnails
+- **Pinned Posts** 📌: Pin important posts to the top of your blog
+- **Post Management** 🔧: CLI commands to publish, unpublish, and delete posts
+- **SEO Friendly** 🌐: Generates proper metadata for search engines and social media
 
 ## 🤔 Motivation
 
@@ -59,18 +64,58 @@ echo "# Hello World" > first-post.md
 uvx blogtuner build . _site
 ```
 
+### Post Management
+
+BlogTuner comes with a set of commands to manage your posts:
+
+```bash
+# List all your posts
+blogtuner post list
+
+# Publish a draft post
+blogtuner post publish slug-of-your-post
+
+# Unpublish a post (mark as draft)
+blogtuner post unpublish slug-of-your-post
+
+# Delete a post
+blogtuner post delete slug-of-your-post
+```
+
+### Importing Content
+
+#### From Markdown Files
+
+```bash
+# Import a markdown file as a new post
+blogtuner post import markdown /path/to/your/post.md
+```
+
+#### From Substack
+
+```bash
+# Import all posts from a Substack blog
+blogtuner post import substack https://yourblog.substack.com
+```
+
 ### Smart File Organization
 
 BlogTuner automatically renames your files to follow the pattern `YYYY-MM-DD-slug.md`.
 
-**NEW**: Git-aware file renaming! 🎉
-
-When BlogTuner normalizes your file names, it now intelligently detects if the file is part of a Git repository:
+When BlogTuner normalizes your file names, it intelligently detects if the file is part of a Git repository:
 
 - If the file is tracked in Git, it uses `git mv` to rename it, preserving your Git history
 - If not, it falls back to a regular file system rename
 
 This makes BlogTuner play nicely with your Git workflow while keeping everything organized.
+
+### Images
+
+BlogTuner automatically processes images for your posts:
+
+1. Place an image with the same name as your post (e.g., `2024-04-05-my-post.jpg` for `2024-04-05-my-post.md`)
+2. BlogTuner will automatically process it, create optimized WebP versions, and generate thumbnails
+3. Images are referenced in your HTML and feed automatically
 
 ### Frontmatter
 
@@ -79,9 +124,14 @@ Posts can include TOML frontmatter at the beginning of the file (if you don't in
 ```markdown
 +++
 title = "My Awesome Post"
-pubdate = "2024-03-28"
+pubdate = "2024-04-05"
 draft = false
 slug = "custom-slug"  # Optional, defaults to filename
+tags = ["tech", "programming"]
+pinned = false  # Set to true to pin this post to the top
+oneliner = "A brief description of this post"
+description = "A longer description for SEO purposes"
+original_href = "https://original-source.com/post"  # If republishing from elsewhere
 +++
 
 # My Awesome Post
@@ -99,8 +149,11 @@ author = "Your Name"
 base_url = "https://yourdomain.com"
 base_path = "/"
 lang = "en"
-tz = "UTC"
-footer_text = "Powered by <a href='https://github.com/alltuner/blogtuner'>Blogtuner</a>"
+timezone = "UTC"
+description = "A blog about interesting things"
+footer_text = "Powered by <a href='https://github.com/alltuner/blogtuner'>BlogTuner</a>"
+links = { "GitHub" = "https://github.com/yourusername", "Twitter" = "https://twitter.com/yourusername" }
+twitter_metadata = { "site" = "@yoursite", "creator" = "@yourusername" }
 ```
 
 ## 🛠️ Features in Detail
@@ -109,15 +162,24 @@ footer_text = "Powered by <a href='https://github.com/alltuner/blogtuner'>Blogtu
 
 - **Automatic Metadata**: Extract frontmatter or use defaults
 - **Date Handling**: Parse dates from frontmatter or use file timestamps
-- **Drafts**: Drafts won't appear in the index or feed
+- **Drafts**: Drafts won't appear in the public index or feed
 - **File Normalization**: Files renamed to YYYY-MM-DD-slug.md with Git awareness
+- **Syntax Highlighting**: Code blocks are automatically highlighted
+- **Format Normalization**: Markdown is normalized to ensure consistent formatting
 
 ### Site Generation
 
 - **HTML Generation**: Clean, simple HTML for each post and index
-- **Feed Generation**: Atom feed for syndication
+- **Feed Generation**: RSS feed for syndication
 - **CSS Bundling**: Simple, clean CSS included automatically
 - **Fast Processing**: Efficient even for large numbers of posts
+- **Image Processing**: Automatic optimization and thumbnail generation
+- **SEO Metadata**: Proper metadata for search engines and social media
+
+### LLM-Enhanced Features
+
+- **Substack Import**: Uses LLM-powered conversion from HTML to Markdown
+- **Content Processing**: Intelligent handling of various content types
 
 ## 🧑‍💻 Contributing
 
@@ -141,9 +203,23 @@ Submit your PRs and let's make blogging simpler together!
 ## 🔄 Example Workflow
 
 1. Write posts in Markdown with optional TOML frontmatter
-2. Run BlogTuner to generate HTML and Atom feed
+2. Run BlogTuner to generate HTML and RSS feed
 3. Push HTML to GitHub Pages or your hosting service
 4. Repeat daily (no excuses!)
+
+## CLI Commands Reference
+
+```
+blogtuner --help                     # Show help for all commands
+blogtuner version                    # Show version
+blogtuner build TARGET_DIR           # Build site to target directory
+blogtuner post list                  # List all posts
+blogtuner post publish SLUG          # Publish a draft post
+blogtuner post unpublish SLUG        # Mark a post as draft
+blogtuner post delete SLUG           # Delete a post
+blogtuner post import markdown FILE  # Import a markdown file
+blogtuner post import substack URL   # Import posts from Substack
+```
 
 ## 👨‍💻 Author
 

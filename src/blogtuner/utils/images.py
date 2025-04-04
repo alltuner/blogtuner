@@ -1,9 +1,70 @@
+import hashlib
 import io
+from functools import cached_property
 from pathlib import Path
+from typing import Optional, Self
 
 from PIL import Image, UnidentifiedImageError
+from pydantic import BaseModel, computed_field
 
-from .logs import logger
+from blogtuner.utils.logs import logger
+from blogtuner.utils.paths import save_image
+
+
+class PostImage(BaseModel):
+    bytes_: bytes = b""
+    suffix: Optional[str] = ""
+
+    @computed_field  # type: ignore[misc]
+    @cached_property
+    def checksum(self) -> str | None:
+        """Calculate the checksum of the image bytes."""
+        return hashlib.sha256(self.bytes_).hexdigest()[:10] if self.bytes_ else None
+
+    @cached_property
+    def thumbnail(self) -> bytes:
+        return create_web_thumbnail_from_bytes(self.bytes_)
+
+    @cached_property
+    def image(self) -> bytes:
+        return create_webp_image_from_bytes(self.bytes_)
+
+    @property
+    def image_length(self) -> int:
+        return len(self.image)
+
+
+class ImageFile(PostImage):
+    filepath: Path
+
+    @classmethod
+    def from_path(cls, src_dir: Path, stems: str | set[str]) -> Self | None:
+        """Load image file from the specified path."""
+        if isinstance(stems, str):
+            stems = {stems}
+
+        for stem in stems:
+            logger.debug(f"Checking for image file with stem: {stem} in {src_dir}")
+            image_file = find_image_file(src_dir, stem)
+            if image_file:
+                return cls(
+                    bytes_=image_file.read_bytes(),
+                    filepath=image_file,
+                    suffix=image_file.suffix,
+                )
+
+        return None
+
+    @classmethod
+    def from_url(cls, url: str, stem: str, save_dir: Path) -> Self:
+        """Load image from a URL."""
+
+        image_file = save_image(url=url, stem=stem, save_dir=save_dir)
+        return cls(
+            bytes_=image_file.read_bytes(),
+            filepath=image_file,
+            suffix=image_file.suffix,
+        )
 
 
 SUPPORTED_EXTENSIONS = (

@@ -6,7 +6,7 @@ from pathlib import Path
 import requests
 from PIL import Image
 
-from . import logger
+from blogtuner.utils.logs import logger
 
 
 def get_resource_path(directory: str) -> Path:

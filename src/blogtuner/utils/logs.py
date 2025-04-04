@@ -6,6 +6,9 @@ from pathlib import Path
 from loguru import logger
 
 
+__all__ = ["logger"]
+
+
 class LogLevel(StrEnum):
     DEBUG = "DEBUG"
     INFO = "INFO"

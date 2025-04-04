@@ -1,7 +1,8 @@
 from pathlib import Path
 
-from .models import BlogConfig, BlogGenerator
-from .paths import setup_target_dir
+from blogtuner.core.blog import BlogConfig
+from blogtuner.core.site import BlogGenerator
+from blogtuner.utils.paths import setup_target_dir
 
 
 def build_site(target_dir: Path, blog: BlogConfig) -> None:

@@ -1,6 +1,6 @@
 from jinja2 import Environment, FileSystemLoader, Template
 
-from .paths import get_resource_path
+from blogtuner.utils.paths import get_resource_path
 
 
 def get_jinja_env() -> Environment:

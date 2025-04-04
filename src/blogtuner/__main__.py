@@ -1,4 +1,4 @@
-from .cli import app
+from blogtuner.cli import app
 
 
 app()

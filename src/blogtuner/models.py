@@ -122,6 +122,8 @@ class BlogPost(BaseModel):
     # Extra metadata fields
     tags: List[str] = []
     oneliner: Optional[str] = None
+    description: Optional[str] = None
+    llm_image_prompt: Optional[str] = None
 
     # Original publication
     original_href: Optional[HttpUrl] = None

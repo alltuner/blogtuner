@@ -6,7 +6,15 @@ from pygments.lexers import get_lexer_by_name
 from pygments.styles import get_style_by_name
 
 
-css_styles = HtmlFormatter().get_style_defs(".highlight")
+css_styles = (
+    HtmlFormatter().get_style_defs(".highlight")
+    + """
+td.linenos {
+    width: 20px;
+    text-align: right;
+}
+"""
+)
 
 
 class HighlightRenderer(mistune.HTMLRenderer):

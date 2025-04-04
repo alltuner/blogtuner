@@ -13,7 +13,7 @@ from dateutil import tz
 from dateutil.parser import parse as dateparse
 from feedgen.feed import FeedGenerator  # type: ignore
 from loguru import logger
-from pydantic import BaseModel, Field, HttpUrl, field_serializer, computed_field
+from pydantic import BaseModel, Field, HttpUrl, computed_field, field_serializer
 from slugify import slugify
 
 from .constants import DEFAULT_BLOG_METADATA, DEFAULT_POST_METADATA

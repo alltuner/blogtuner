@@ -436,6 +436,10 @@ class BlogGenerator(BaseModel):
         if self.blog.lang:
             feed.language(self.blog.lang)
 
+        feed.description(
+            self.blog.description if self.blog.description else self.blog.name
+        )
+
         # Add feed links
         feed.link(href=blog_url, rel="alternate")
         feed.link(href=f"{blog_url}feed.xml", rel="self")
@@ -447,20 +451,25 @@ class BlogGenerator(BaseModel):
             entry = feed.add_entry()
             entry.id(entry_url)
             if post.oneliner:
-                entry.description(post.oneliner, isSummary=True)
+                entry.description(post.oneliner)
             entry.title(post.title)
+            if post.tags:
+                for tag in post.tags:
+                    entry.category(term=tag)
             entry.link(href=entry_url)
+
             if post.image and post.image.checksum:
                 image_url = f"{blog_url}{post.image.checksum}.webp"
                 entry.enclosure(
                     url=image_url, length=post.image.image_length, type="image/webp"
                 )
+
             entry.content(post.html_content, type="html")
             entry.published(post.pubdate.replace(tzinfo=tz_info))
 
         # Write feed file
         feed_path = self.target_dir / "feed.xml"
-        feed_path.write_text(feed.atom_str(pretty=True).decode("utf-8"))
+        feed_path.write_text(feed.rss_str(pretty=True).decode("utf-8"))
         logger.info(f"Created XML feed: {feed_path}")
 
     def generate_index(self) -> None:

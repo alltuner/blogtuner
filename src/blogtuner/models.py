@@ -23,7 +23,7 @@ from .images import (
     find_image_file,
 )
 from .markdown import css_styles, format_markdown, to_html
-from .paths import get_static_file
+from .paths import get_static_file, save_image
 from .templates import load_template
 
 
@@ -70,6 +70,17 @@ class ImageFile(Image):
                 )
 
         return None
+
+    @classmethod
+    def from_url(cls, url: str, stem: str, save_dir: Path) -> Self:
+        """Load image from a URL."""
+
+        image_file = save_image(url=url, stem=stem, save_dir=save_dir)
+        return cls(
+            bytes_=image_file.read_bytes(),
+            filepath=image_file,
+            suffix=image_file.suffix,
+        )
 
 
 def move_file_with_git_awareness(source: Path, destination: Path) -> Path:

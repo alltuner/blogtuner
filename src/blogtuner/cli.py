@@ -7,6 +7,7 @@ from rich.table import Table
 from typing_extensions import Annotated
 
 from .builder import build_site
+from .importer import import_substack_posts
 from .logs import LogLevel, setup_logging
 from .models import BlogConfig
 
@@ -140,6 +141,20 @@ def import_markdown(
 ) -> None:
     blog = BlogConfig.from_directory(cli_state.src_dir)
     blog.import_markdown_file(markdown_file)
+
+
+@import_app.command(help="Import all the posts of a substack blog", name="substack")
+def import_substack(
+    substack_url: Annotated[
+        str,
+        typer.Argument(
+            help="The substack URL to import posts from",
+        ),
+    ],
+) -> None:
+    blog = BlogConfig.from_directory(cli_state.src_dir)
+
+    import_substack_posts(substack_url, blog.used_slugs, cli_state.src_dir)
 
 
 @app.command(help="Show the version of the application")

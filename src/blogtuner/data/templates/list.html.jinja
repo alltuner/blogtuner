@@ -39,16 +39,16 @@
 
 {% endblock %}
 {% block body %}
-<section class="max-w-3xl mx-auto px-4 py-8">
-  <div class="mb-6 flex items-center">
+<section class="max-w-3xl mx-auto px-4 py-4 sm:py-8">
+  <div class="mb-4 sm:mb-6 flex items-center">
     {% if blog.relative_thumbnail_image_url %}
-    <div class="mr-4 flex-shrink-0">
-      <img src="{{ blog.relative_thumbnail_image_url }}" alt="{{ blog.name }} thumbnail" width="128" height="128"
-        class="rounded-lg shadow-sm object-cover">
+    <div class="mr-3 sm:mr-4 flex-shrink-0">
+      <img src="{{ blog.relative_thumbnail_image_url }}" alt="{{ blog.name }} thumbnail" width="96" height="96"
+        class="w-16 h-16 sm:w-32 sm:h-32 rounded-lg shadow-sm object-cover">
     </div>
     {% endif %}
     <div>
-      <h1 class="text-3xl font-bold">{% if blog.name %}{{ blog.name }}{% else %}Blog Posts{% endif %}</h1>
+      <h1 class="text-2xl sm:text-3xl font-bold">{% if blog.name %}{{ blog.name }}{% else %}Blog Posts{% endif %}</h1>
       {%- if blog.author %}
       <div class="text-gray-600 mt-1">by {% if blog.author_url %}<a href="{{ blog.author_url }}"
           class="text-blue-600 hover:text-blue-800 transition-colors duration-200">{{ blog.author }}</a>{% else %}{{
@@ -59,53 +59,58 @@
 
   {%- if blog.description %}
   <div
-    class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 p-5 rounded-lg shadow-sm mb-8 border-l-4 border-blue-400 dark:border-indigo-600">
-    <p class="text-gray-700 dark:text-gray-300 italic leading-relaxed">{{ blog.description }}</p>
+    class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 p-3 sm:p-5 rounded-lg shadow-sm mb-4 sm:mb-8 border-l-4 border-blue-400 dark:border-indigo-600">
+    <p class="text-gray-700 dark:text-gray-300 italic leading-relaxed text-sm sm:text-base">{{ blog.description }}</p>
   </div>
   {%- endif %}
 
   {%- if blog.sorted_public_posts %}
-  <ul class="space-y-8">
+  <ul class="space-y-4 sm:space-y-8">
     {%- for post in blog.sorted_public_posts %}
-    <li class="flex items-start border-b border-gray-200 pb-6">
-      <div class="flex-1 pr-6">
-        <h2 class="text-xl font-semibold mb-2">{% if post.pinned %}📌 {% endif %}
-          <a href="{{ blog.base_path }}{{ post.html_filename }}"
-            class="hover:text-blue-600 transition-colors duration-200">
-            {{ post.title }}
-          </a>
-        </h2>
+    <li class="flex flex-wrap border-b border-gray-200 pb-4 sm:pb-6">
+      <div class="flex w-full sm:w-auto sm:flex-1">
+        <div class="flex-1 pr-2">
+          <h2 class="text-lg sm:text-xl font-semibold mb-0 sm:mb-2">{% if post.pinned %}📌 {% endif %}
+            <a href="{{ blog.base_path }}{{ post.html_filename }}"
+              class="hover:text-blue-600 transition-colors duration-200">
+              {{ post.title }}
+            </a>
+          </h2>
 
-        {% if post.oneliner %}
-        <p class="text-gray-600 italic mb-3">{{ post.oneliner }}</p>
-        {% endif %}
-
-        <div class="flex items-center text-sm mb-3">
-          <time datetime="{{ post.pubdate | date('%Y-%m-%d') }}" class="text-gray-500">
-            {{ post.pubdate | date('%B %d, %Y') }}
-          </time>
-          {%- if post.author %}
-          <span class="text-gray-600 ml-2">by {{ post.author }}</span>
-          {%- endif %}
+          <div class="flex items-center text-xs sm:text-sm mb-2">
+            <time datetime="{{ post.pubdate | date('%Y-%m-%d') }}" class="text-gray-500">
+              {{ post.pubdate | date('%B %d, %Y') }}
+            </time>
+            {%- if post.author %}
+            <span class="text-gray-600 ml-2">by {{ post.author }}</span>
+            {%- endif %}
+          </div>
         </div>
 
-        {%- if post.tags %}
-        <div class="mt-2">
-          <ul class="flex flex-wrap gap-1.5">
-            {% for tag in post.tags %}
-            <li class="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded-full text-xs text-gray-700 dark:text-gray-300">
-              {{ tag }}
-            </li>
-            {% endfor %}
-          </ul>
+        {% if post.thumbnail %}
+        <div class="flex-shrink-0 mb-0">
+          <img src="{{ blog.base_path }}{{ post.thumbnail }}" alt="Thumbnail for {{ post.title }}" width="128"
+            height="128" class="size-16 sm:size-24 rounded-lg shadow-sm object-cover">
         </div>
         {% endif %}
       </div>
 
-      {% if post.thumbnail %}
-      <div class="flex-shrink-0 mt-1">
-        <img class="w-32 h-32" src="{{ blog.base_path }}{{ post.thumbnail }}" alt="Thumbnail for {{ post.title }}"
-          width="128" height="128" class="rounded-lg shadow-sm object-cover">
+      {% if post.oneliner %}
+      <div class="w-full mt-1 sm:mt-0 sm:pl-0">
+        <p class="text-gray-600 italic text-sm sm:text-base sm:mb-3">{{ post.oneliner }}</p>
+      </div>
+      {% endif %}
+
+      {%- if post.tags %}
+      <div class="w-full mt-4 sm:mt-2 sm:pl-0">
+        <ul class="flex flex-wrap gap-1">
+          {% for tag in post.tags %}
+          <li
+            class="px-1 sm:px-1.5 py-0.25 sm:py-0.5 bg-gray-100 dark:bg-gray-800 rounded-sm sm:rounded-full text-xs sm:text-sm text-gray-700 dark:text-gray-300">
+            {{ tag }}
+          </li>
+          {% endfor %}
+        </ul>
       </div>
       {% endif %}
     </li>
@@ -116,8 +121,8 @@
   {%- endif %}
 </section>
 {%- if blog.links %}
-<footer class="max-w-3xl mx-auto px-4 py-6 border-gray-200 mt-8">
-  <div class="flex flex-wrap justify-center gap-6 text-sm">
+<footer class="max-w-3xl mx-auto px-4 py-4 sm:py-6 border-gray-200 mt-4 sm:mt-8">
+  <div class="flex flex-wrap justify-center gap-4 sm:gap-6 text-xs sm:text-sm">
     {% for label, url in blog.links.items() %}
     <a href="{{ url }}"
       class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors duration-200">

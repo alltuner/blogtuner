@@ -50,11 +50,10 @@
         post.oneliner %} ➠
         <span class="italic">{{ post.oneliner }}</span>{% endif %}
       </p>
-      <div class="flex items-center text-gray-500 text-sm">
-        <time datetime="{{ post.pubdate|date('%Y-%m-%d') }}">{{ post.pubdate|date('%B %d, %Y') }}</time>
+      <div class="flex flex-col md:flex-row items-start justify-start text-gray-500 text-sm md:gap-2">
+        <div><time datetime="{{ post.pubdate|date('%Y-%m-%d') }}">{{ post.pubdate|date('%B %d, %Y') }}</time></div>
         {%- if author %}
-        <span class="mx-2">&bull;</span>
-        <span>by {{ author }}</span>
+        <div><span>by {{ author }}</span></div>
         {%- endif %}
       </div>
     </div>

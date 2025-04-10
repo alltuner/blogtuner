@@ -44,9 +44,12 @@
 <article class="max-w-3xl mx-auto">
   <header class="mb-8 flex flex-row">
     <div class="flex-1 pr-4">
-      {% if post.oneliner %}
-      <p class="text-xl text-gray-600 italic mb-4">{{ post.oneliner }}</p>
-      {% endif %}
+      <p class="text-xl text-gray-600 italic mb-4">{% if blog.name %}{% if blog.base_path %}<a
+          class="text-blue-600 hover:text-blue-800 transition-colors duration-200" href="{{ blog.base_path }}">{{
+          blog.name }}</a>{% else %}{{ blog.name }}{% endif %}{% endif %}{% if
+        post.oneliner %} ➠
+        {{
+        post.oneliner }}{% endif %}</p>
       <div class="flex items-center text-gray-500 text-sm">
         <time datetime="{{ post.pubdate|date('%Y-%m-%d') }}">{{ post.pubdate|date('%B %d, %Y') }}</time>
         {%- if author %}

@@ -70,7 +70,7 @@ class BlogGenerator(BaseModel):
 
         # Add entries for all public posts
         tz_info = tz.gettz(self.blog.timezone)
-        for post in self.blog.sorted_public_posts:
+        for post in reversed(self.blog.sorted_public_posts):
             entry_url = f"{blog_url}{post.html_filename}"
             entry = feed.add_entry()
             entry.id(entry_url)

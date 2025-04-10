@@ -6,6 +6,10 @@
 
 BlogTuner is a ridiculously simple static blog generator that converts Markdown files to HTML with zero fuss. No complex configurations, no steep learning curves—just write and publish.
 
+## Demo
+
+BlogTuner is being used on [davidpoblador.com/blog](https://davidpoblador.com/blog), if you want to get an idea!
+
 ## ✨ Features
 
 - **Dead Simple**: Convert Markdown to HTML—that's it

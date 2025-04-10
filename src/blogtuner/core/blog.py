@@ -41,6 +41,7 @@ class BlogConfig(BaseModel):
     base_url: Optional[HttpUrl] = None
     base_path: str = "/"
     author: Optional[str] = None
+    author_url: Optional[str] = None
     name: Optional[str] = None
     lang: Optional[str] = None
     description: Optional[str] = None

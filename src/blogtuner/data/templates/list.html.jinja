@@ -50,7 +50,9 @@
     <div>
       <h1 class="text-3xl font-bold">{% if blog.name %}{{ blog.name }}{% else %}Blog Posts{% endif %}</h1>
       {%- if blog.author %}
-      <div class="text-gray-600 mt-1">by {{ blog.author }}</div>
+      <div class="text-gray-600 mt-1">by {% if blog.author_url %}<a href="{{ blog.author_url }}"
+          class="text-blue-600 hover:text-blue-800 transition-colors duration-200">{{ blog.author }}</a>{% else %}{{
+        blog.author }}{% endif %}</div>
       {%- endif %}
     </div>
   </div>

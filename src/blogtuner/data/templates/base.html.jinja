@@ -11,6 +11,9 @@
   {% else %}
   <link rel="stylesheet" href="{{ blog.blog_path }}bundle.css">
   {% endif %}
+  {% if blog.extra_head %}
+  {{ blog.extra_head | safe }}
+  {% endif %}
 </head>
 
 <body class="min-h-full flex flex-col bg-white font-serif dark:bg-gray-900 text-gray-900 dark:text-gray-100">

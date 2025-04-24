@@ -51,6 +51,7 @@ class BlogConfig(BaseModel):
     posts: List[BlogPost] = []
     css: Optional[str] = None
     links: Optional[Dict[str, HttpUrl]] = None
+    extra_head: Optional[str] = None
 
     twitter_metadata: Optional[Dict[str, str | None]] = None
     image_checksum: Optional[str] = None

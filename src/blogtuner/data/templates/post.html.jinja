@@ -53,13 +53,14 @@
       <div class="flex flex-col md:flex-row items-start justify-start text-gray-500 text-sm md:gap-2">
         <div><time datetime="{{ post.pubdate|date('%Y-%m-%d') }}">{{ post.pubdate|date('%B %d, %Y') }}</time></div>
         {%- if author %}
-        <div><span>by {{ author }}</span></div>
+        <div><span>{% trans author=author %}by {{ author }}{% endtrans %}</span></div>
         {%- endif %}
       </div>
     </div>
     {% if post.thumbnail %}
     <div class="flex-shrink-0">
-      <img src="{{ blog.base_path }}{{ post.thumbnail }}" alt="Featured image for {{ post.title }}"
+      <img src="{{ blog.base_path }}{{ post.thumbnail }}"
+        alt="{% trans post_title=post.title %}Featured image for {{ post_title }}{% endtrans %}"
         class="w-32 h-32 rounded-lg shadow-sm object-cover">
     </div>
     {% endif %}
@@ -72,7 +73,7 @@
   <footer class="border-t border-gray-200 pt-6 mt-10">
     {% if post.original_href %}
     <div class="mb-6">
-      <h2 class="text-lg font-semibold mb-2">Originally published</h2>
+      <h2 class="text-lg font-semibold mb-2">{% trans %}Originally published{% endtrans %}</h2>
       <div class="text-gray-600">
         <a href="{{ post.original_href }}" class="text-blue-600 hover:text-blue-800 transition-colors duration-200"
           target="_blank" rel="noopener">
@@ -103,7 +104,7 @@
   <p>
     <a href="{{ blog.base_path or '/' }}"
       class="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors duration-200">
-      ← Back to {{ blog.name or "blog" }}
+      {% trans blog_name=blog.name or "blog" %}← Back to {{ blog_name }}{% endtrans %}
     </a>
   </p>
 </nav>

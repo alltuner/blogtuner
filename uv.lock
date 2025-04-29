@@ -31,6 +31,15 @@ wheels = [
 ]
 
 [[package]]
+name = "babel"
+version = "2.17.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/7d/6b/d52e42361e1aa00709585ecc30b3f9684b3ab62530771402248b1b1d6240/babel-2.17.0.tar.gz", hash = "sha256:0c54cffb19f690cdcc52a3b50bcbf71e07a808d1c80d549f2459b9d2cf0afb9d", size = 9951852, upload_time = "2025-02-01T15:17:41.026Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b7/b8/3fe70c75fe32afc4bb507f75563d39bc5642255d1d94f1f23604725780bf/babel-2.17.0-py3-none-any.whl", hash = "sha256:4d0b53093fdfb4b21c92b5213dba5a1b23885afa8383709427046b21c366e5f2", size = 10182537, upload_time = "2025-02-01T15:17:37.39Z" },
+]
+
+[[package]]
 name = "beautifulsoup4"
 version = "4.13.4"
 source = { registry = "https://pypi.org/simple" }
@@ -48,6 +57,7 @@ name = "blogtuner"
 version = "0.11.0"
 source = { editable = "." }
 dependencies = [
+    { name = "babel" },
     { name = "feedgen" },
     { name = "gitpython" },
     { name = "jinja2" },
@@ -67,6 +77,7 @@ dependencies = [
     { name = "substack-api", version = "1.0.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "toml" },
     { name = "typer" },
+    { name = "types-jinja2" },
 ]
 
 [package.dev-dependencies]
@@ -83,6 +94,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "babel", specifier = ">=2.17.0" },
     { name = "feedgen", specifier = ">=1.0.0" },
     { name = "gitpython", specifier = ">=3.1.44" },
     { name = "jinja2", specifier = ">=3.1.6" },
@@ -101,6 +113,7 @@ requires-dist = [
     { name = "substack-api", specifier = ">=0.1.0" },
     { name = "toml", specifier = ">=0.10.2" },
     { name = "typer", specifier = ">=0.15.2" },
+    { name = "types-jinja2", specifier = ">=2.11.9" },
 ]
 
 [package.metadata.requires-dev]
@@ -1473,6 +1486,27 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/dd/df/64e7ab01a4fc5ce46895dc94e31cffc8b8087c8d91ee54c45ac2d8d82445/types_docutils-0.21.0.20241128.tar.gz", hash = "sha256:4dd059805b83ac6ec5a223699195c4e9eeb0446a4f7f2aeff1759a4a7cc17473", size = 26739, upload_time = "2024-11-28T02:54:57.756Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/59/b6/10ba95739f2cbb9c5bd2f6568148d62b468afe01a94c633e8892a2936d8a/types_docutils-0.21.0.20241128-py3-none-any.whl", hash = "sha256:e0409204009639e9b0bf4521eeabe58b5e574ce9c0db08421c2ac26c32be0039", size = 34677, upload_time = "2024-11-28T02:54:55.64Z" },
+]
+
+[[package]]
+name = "types-jinja2"
+version = "2.11.9"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "types-markupsafe" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/46/c4/b82309bfed8195de7997672deac301bd6f5bd5cbb6a3e392b7fe780d7852/types-Jinja2-2.11.9.tar.gz", hash = "sha256:dbdc74a40aba7aed520b7e4d89e8f0fe4286518494208b35123bcf084d4b8c81", size = 13302, upload_time = "2021-11-26T06:21:17.496Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b7/b0/e79d84748f1d34304f13191424348a719c3febaa3493835370fe9528e1e6/types_Jinja2-2.11.9-py3-none-any.whl", hash = "sha256:60a1e21e8296979db32f9374d8a239af4cb541ff66447bb915d8ad398f9c63b2", size = 18190, upload_time = "2021-11-26T06:21:16.18Z" },
+]
+
+[[package]]
+name = "types-markupsafe"
+version = "1.1.10"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/39/31/b5f059142d058aec41e913d8e0eff0a967e7bc46f9a2ba2f31bc11cff059/types-MarkupSafe-1.1.10.tar.gz", hash = "sha256:85b3a872683d02aea3a5ac2a8ef590193c344092032f58457287fbf8e06711b1", size = 2986, upload_time = "2021-11-27T03:18:07.558Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bc/d6/b8effb1c48539260a5eb4196afc55efac4ea1684a4991977555eb266b2ef/types_MarkupSafe-1.1.10-py3-none-any.whl", hash = "sha256:ca2bee0f4faafc45250602567ef38d533e877d2ddca13003b319c551ff5b3cc5", size = 3998, upload_time = "2021-11-27T03:18:06.398Z" },
 ]
 
 [[package]]

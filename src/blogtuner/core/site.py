@@ -21,7 +21,7 @@ class BlogGenerator(BaseModel):
 
     def generate_html_posts(self) -> None:
         """Generate HTML files for all posts."""
-        template = load_template("post")
+        template = load_template("post", locale=self.blog.lang)
         target_dir = self.target_dir
         for post in self.blog.posts:
             html_file = target_dir / post.html_filename
@@ -99,7 +99,9 @@ class BlogGenerator(BaseModel):
     def generate_index(self) -> None:
         """Generate the main index.html file."""
         index_path = self.target_dir / "index.html"
-        index_path.write_text(load_template("list").render(blog=self.blog))
+        index_path.write_text(
+            load_template("list", locale=self.blog.lang).render(blog=self.blog)
+        )
         logger.info(f"Created blog index HTML file: {index_path}")
 
     def copy_blog_image(self) -> None:

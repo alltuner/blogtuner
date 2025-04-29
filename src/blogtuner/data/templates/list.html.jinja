@@ -1,5 +1,5 @@
 {% extends 'base.html.jinja' %}
-{% block title %}{% if blog.name %}{{ blog.name }}{% else %}Blog Posts{% endif %}{% endblock %}
+{% block title %}{% if blog.name %}{{ blog.name }}{% else %}{% trans %}Blog Posts{% endtrans %}{% endif %}{% endblock %}
 {% block head %}
 
 <link rel="canonical" href="{{ blog.full_url }}" />
@@ -43,16 +43,22 @@
   <div class="mb-4 sm:mb-6 flex items-center">
     {% if blog.relative_thumbnail_image_url %}
     <div class="mr-3 sm:mr-4 flex-shrink-0">
-      <img src="{{ blog.relative_thumbnail_image_url }}" alt="{{ blog.name }} thumbnail" width="96" height="96"
+      <img src="{{ blog.relative_thumbnail_image_url }}"
+        alt="{% trans blog_name=blog.name %}{{ blog_name }} thumbnail{% endtrans %}" width="96" height="96"
         class="w-16 h-16 sm:w-32 sm:h-32 rounded-lg shadow-sm object-cover">
     </div>
     {% endif %}
     <div>
-      <h1 class="text-2xl sm:text-3xl font-bold">{% if blog.name %}{{ blog.name }}{% else %}Blog Posts{% endif %}</h1>
+      <h1 class="text-2xl sm:text-3xl font-bold">{% if blog.name %}{{ blog.name }}
+        {% else %}{% trans %}Blog Posts{% endtrans %}{% endif %}</h1>
       {%- if blog.author %}
-      <div class="text-gray-600 mt-1">by {% if blog.author_url %}<a href="{{ blog.author_url }}"
-          class="text-blue-600 hover:text-blue-800 transition-colors duration-200">{{ blog.author }}</a>{% else %}{{
-        blog.author }}{% endif %}</div>
+      {% if blog.author_url %}
+      {% set blog_author = '<a href="' + blog.author_url + '"
+        class="text-blue-600 hover:text-blue-800 transition-colors duration-200">' + blog.author + '</a>' %}
+      {% else %}
+      {% set blog_author = blog.author %}
+      {% endif %}
+      <div class="text-gray-600 mt-1">{% trans author=blog_author|safe %}by {{ author }}{% endtrans %}</div>
       {%- endif %}
     </div>
   </div>
@@ -82,15 +88,17 @@
               {{ post.pubdate | date('%B %d, %Y') }}
             </time>
             {%- if post.author %}
-            <span class="text-gray-600 ml-2">by {{ post.author }}</span>
+            <span class="text-gray-600 ml-2">{% trans author=post.author %}by {{ author }}{% endtrans
+              %}</span>
             {%- endif %}
           </div>
         </div>
 
         {% if post.thumbnail %}
         <div class="flex-shrink-0 mb-0">
-          <img src="{{ blog.base_path }}{{ post.thumbnail }}" alt="Thumbnail for {{ post.title }}" width="128"
-            height="128" class="size-16 sm:size-24 rounded-lg shadow-sm object-cover">
+          <img src="{{ blog.base_path }}{{ post.thumbnail }}"
+            alt="{% trans post_title=post.title %}Thumbnail for {{ post_title }}{% endtrans %}" width="128" height="128"
+            class="size-16 sm:size-24 rounded-lg shadow-sm object-cover">
         </div>
         {% endif %}
       </div>
@@ -117,7 +125,7 @@
     {% endfor %}
   </ul>
   {%- else %}
-  <p class="text-gray-600">No posts found.</p>
+  <p class="text-gray-600">{% trans %}No posts found.{% endtrans %}</p>
   {%- endif %}
 </section>
 {%- if blog.links %}

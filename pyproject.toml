@@ -88,7 +88,7 @@ pre_commit_hooks = []
 post_commit_hooks = []
 
 [build-system]
-requires = ["uv_build>=0.6,<0.7"]
+requires = ["uv_build>=0.7,<0.8"]
 build-backend = "uv_build"
 
 [dependency-groups]

@@ -4,7 +4,7 @@ version = "0.13.1"
 description = "Dead simple static blog generator using markdown files"
 readme = "README.md"
 authors = [{ name = "All Tuner Labs", email = "hey@alltuner.com" }]
-requires-python = ">=3.9"
+requires-python = ">=3.12"
 dependencies = [
     "babel>=2.17.0",
     "feedgen>=1.0.0",

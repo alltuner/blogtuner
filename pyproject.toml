@@ -1,6 +1,6 @@
 [project]
 name = "blogtuner"
-version = "0.13.4"
+version = "0.13.5"
 description = "Dead simple static blog generator using markdown files"
 readme = "README.md"
 authors = [{ name = "All Tuner Labs", email = "hey@alltuner.com" }]

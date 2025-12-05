@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.13.8](https://github.com/alltuner/blogtuner/compare/v0.13.7...v0.13.8) (2025-12-05)
+
+
+### Bug Fixes
+
+* **ci:** add explicit config and manifest file paths ([#39](https://github.com/alltuner/blogtuner/issues/39)) ([0d0821d](https://github.com/alltuner/blogtuner/commit/0d0821de8ef9d2f82f6c914a5a589ec5c1096918))
+* **ci:** combine release-please and publish into single workflow ([#38](https://github.com/alltuner/blogtuner/issues/38)) ([e2627dc](https://github.com/alltuner/blogtuner/commit/e2627dc2ca83716460faea7477af57426ca24520))
+
 ## [0.13.7](https://github.com/alltuner/blogtuner/compare/v0.13.6...v0.13.7) (2025-12-05)
 
 
